@@ -126,67 +126,121 @@ Xuất kết quả bằng Markdown với các tiêu đề:
 
 ---
 
-# 3. Minh chứng chạy thực tế (Text Log)
+# 3. Minh chứng chạy thực tế
 
-```text
-User:
+Dưới đây là tài liệu Software Requirement Specification (SRS) hoàn chỉnh cho module AI Product Recommendation của hệ thống Shop AI, được thiết kế theo chuẩn IEEE và bám sát các ràng buộc của bạn.
 
-Tôi muốn hệ thống tự động gợi ý các sản phẩm liên quan khi người dùng đang xem một món đồ, dựa trên lịch sử mua hàng của họ.
+```markdown
+# Tài Liệu Đặc Tả Yêu Cầu Hệ Thống (SRS)
 
-------------------------------------------------
-
-Assistant:
-
-Đã phân tích yêu cầu.
-
-Module: AI Product Recommendation
-
-Use Case:
-Người dùng xem chi tiết sản phẩm và hệ thống tự động gợi ý các sản phẩm phù hợp dựa trên lịch sử mua hàng và thông tin sản phẩm hiện tại.
-
-Actors:
-- Customer
-
-Preconditions:
-- Người dùng đăng nhập (không bắt buộc).
-- Sản phẩm đang xem tồn tại.
-- Hệ thống có dữ liệu sản phẩm.
-
-Main Flow:
-1. Người dùng mở trang chi tiết sản phẩm.
-2. Hệ thống lấy Product ID.
-3. Nếu có User ID thì lấy lịch sử mua hàng.
-4. Phân tích danh mục, thương hiệu và lịch sử mua.
-5. Tính Recommendation Score.
-6. Loại bỏ sản phẩm không còn hàng.
-7. Chọn tối đa 10 sản phẩm phù hợp.
-8. Trả về danh sách gợi ý.
-
-Functional Requirements:
-- FR-01 Lấy thông tin sản phẩm hiện tại.
-- FR-02 Phân tích lịch sử mua hàng.
-- FR-03 Tính Recommendation Score.
-- FR-04 Lọc sản phẩm hết hàng.
-- FR-05 Sắp xếp theo mức độ phù hợp.
-- FR-06 Trả về danh sách gợi ý.
-
-Business Rules:
-- BR-01 Chỉ đề xuất sản phẩm còn hàng.
-- BR-02 Không đề xuất sản phẩm đã mua nếu đã hết hàng.
-- BR-03 Tối đa 10 sản phẩm.
-- BR-04 Nếu chưa có lịch sử mua hàng thì đề xuất sản phẩm bán chạy.
-- BR-05 Sắp xếp theo Recommendation Score giảm dần.
-
-Data Dictionary:
-User(UserID, Name)
-Product(ProductID, Name, CategoryID, Stock)
-PurchaseHistory(UserID, ProductID, PurchaseDate)
-Recommendation(ProductID, Score)
-Category(CategoryID, CategoryName)
-```
+**Dự án:** Shop AI
+**Module:** AI Product Recommendation (Gợi ý sản phẩm thông minh)
+**Vai trò phân tích:** Senior System Analyst
 
 ---
 
-## 4. Kết quả
+## 1. System Overview (Tổng Quan Hệ Thống)
 
-Workflow Prompt trên có khả năng chuyển yêu cầu nghiệp vụ thô của khách hàng thành tài liệu SRS tương đối đầy đủ, bao gồm **Use Case Description**, **Functional Requirements**, **Business Rules** và **Data Dictionary**. Đồng thời, prompt cũng quy định rõ các ràng buộc và định dạng đầu ra, giúp AI tạo tài liệu nhất quán và có thể sử dụng làm cơ sở cho quá trình thiết kế, phát triển và kiểm thử hệ thống.
+Module **AI Product Recommendation** là một thành phần cốt lõi của hệ thống Shop AI, nhằm tăng cường trải nghiệm mua sắm cá nhân hóa (Personalization) và thúc đẩy doanh thu (Cross-selling/Up-selling). Hệ thống sẽ tự động phân tích sản phẩm người dùng đang xem kết hợp với hành vi mua sắm trong quá khứ để đề xuất danh sách các sản phẩm liên quan nhất, phù hợp với sở thích của từng cá nhân.
+
+---
+
+## 2. Use Case Description (Đặc Tả Use Case)
+
+| Thuộc tính                         | Chi tiết                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Use Case Name**                  | Gợi ý sản phẩm liên quan (AI Product Recommendation).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Actors**                         | Người dùng (Khách hàng đã đăng nhập hoặc Khách viếng thăm - Guest).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Preconditions**                  | - Hệ thống tính toán Recommendation Engine đang hoạt động.<br>- Người dùng điều hướng thành công vào trang Chi tiết sản phẩm (Product Detail Page).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Trigger**                        | Sự kiện tải trang (Page Load) hoặc người dùng cuộn chuột đến khu vực "Sản phẩm liên quan".                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Main Flow (Luồng chính)**        | 1. Người dùng truy cập trang chi tiết sản phẩm A.<br>2. Client gửi API Request chứa `productId` (của sản phẩm A) và `userId` (nếu có).<br>3. Hệ thống truy xuất thông tin sản phẩm A (Category, Tags, Price).<br>4. Hệ thống truy xuất lịch sử mua hàng của `userId` từ cơ sở dữ liệu.<br>5. Recommendation Engine tính toán điểm phù hợp (Recommendation Score) cho các ứng viên dựa trên độ tương đồng và sở thích.<br>6. Hệ thống thực thi các bộ lọc (chỉ lấy hàng còn tồn kho, loại bỏ trùng lặp).<br>7. Hệ thống sắp xếp kết quả theo Score giảm dần và cắt lấy tối đa 10 sản phẩm.<br>8. Trả về danh sách cho Client và hiển thị trên giao diện. |
+| **Alternative Flow (Luồng nhánh)** | - **Nếu `userId` trống (Guest) hoặc User chưa từng mua hàng:** Tại bước 4, hệ thống ghi nhận không có lịch sử mua. Tại bước 5, hệ thống chuyển sang thuật toán Fallback: Gợi ý các sản phẩm nổi bật, sản phẩm bán chạy nhất (Best Sellers) cùng Category với sản phẩm A, và tiếp tục từ bước 6.                                                                                                                                                                                                                                                                                                                                                         |
+| **Postconditions**                 | Hệ thống ghi nhận log hành vi "Người dùng đã xem danh sách gợi ý" để dùng làm dữ liệu huấn luyện (training data) cho AI sau này.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+
+---
+
+## 3. Functional Requirements (Yêu Cầu Chức Năng)
+
+| Mã Yêu Cầu    | Tên Chức Năng       | Mô Tả Chi Tiết                                                                                                             | Input                                       | Output                            |
+| :------------ | :------------------ | :------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------ | :-------------------------------- |
+| **FR-REC-01** | Khởi tạo Gợi ý      | API Endpoint cung cấp danh sách gợi ý sản phẩm cho một ngữ cảnh cụ thể.                                                    | `productId` (bắt buộc), `userId` (tùy chọn) | `List<Product>` (tối đa 10 items) |
+| **FR-REC-02** | Phân tích Lịch sử   | Truy xuất và trích xuất các nhãn (tags), danh mục (categories) từ các đơn hàng hoàn tất của người dùng để làm trọng số AI. | `userId`                                    | `List<UserPreference>`            |
+| **FR-REC-03** | Chấm điểm (Scoring) | Áp dụng thuật toán (Collaborative/Content-based) để gán Recommendation Score cho từng sản phẩm ứng viên.                   | `productId`, `UserPreference`               | Danh sách ứng viên kèm `score`    |
+| **FR-REC-04** | Bộ lọc Tồn kho      | Loại bỏ hoàn toàn các sản phẩm không đáp ứng điều kiện kinh doanh (hết hàng, đã xóa) khỏi tập kết quả.                     | Danh sách ứng viên                          | Danh sách đã lọc                  |
+| **FR-REC-05** | Cơ chế Fallback     | Kích hoạt thuật toán Gợi ý Sản phẩm Thịnh hành khi dữ liệu cá nhân hóa không đủ.                                           | `productId`                                 | Danh sách Best Sellers            |
+
+---
+
+## 4. Business Rules (Quy Tắc Nghiệp Vụ)
+
+Toàn bộ quá trình lọc và trả về kết quả phải tuân thủ nghiêm ngặt các quy tắc sau:
+
+- **BR-REC-01 (Giới hạn số lượng):** Hệ thống chỉ được phép đề xuất **tối đa 10 sản phẩm** trong một lần request.
+- **BR-REC-02 (Ràng buộc Tồn kho):** Chỉ đề xuất các sản phẩm có số lượng tồn kho lớn hơn 0 (`stock > 0`) và đang ở trạng thái kinh doanh (`ACTIVE`).
+- **BR-REC-03 (Sắp xếp kết quả):** Danh sách kết quả cuối cùng phải được sắp xếp theo `Recommendation Score` theo thứ tự **giảm dần** (Từ cao nhất xuống thấp nhất).
+- **BR-REC-04 (Fallback Rule):** Nếu người dùng chưa có lịch sử mua hàng, hoặc người dùng chưa đăng nhập, hệ thống tự động chuyển sang gợi ý các sản phẩm "Nổi bật" hoặc "Bán chạy" (Best-selling) thuộc cùng danh mục với sản phẩm đang xem.
+- **BR-REC-05 (Chống trùng lặp đang xem):** Tuyệt đối không đề xuất chính sản phẩm mà người dùng đang xem (Loại bỏ `productId` của request khỏi danh sách gợi ý).
+- **BR-REC-06 (Lọc hàng đã mua):** Không đề xuất lại những sản phẩm người dùng đã mua nếu sản phẩm đó hiện tại không còn hàng (Quy tắc này được đáp ứng mặc định và bao hàm bởi **BR-REC-02**).
+
+---
+
+## 5. Exception Handling (Xử Lý Ngoại Lệ)
+
+| Tình huống ngoại lệ                                         | Xử lý của hệ thống (System Action)                                                                                                                           |
+| :---------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Thiếu tham số `productId` trong API.                        | Bắn lỗi `400 Bad Request` với thông báo: _"Yêu cầu không hợp lệ. Mã sản phẩm là bắt buộc."_                                                                  |
+| `productId` truyền lên không tồn tại trong hệ thống.        | Hệ thống không thể lấy ngữ cảnh. Bỏ qua thuật toán cá nhân hóa, trả về danh sách sản phẩm Best-sellers của toàn hệ thống (HTTP 200 OK).                      |
+| Recommendation Engine (AI Service) bị quá tải hoặc timeout. | Kích hoạt Circuit Breaker, bỏ qua việc gọi AI và trả về kết quả từ Cache hoặc trả về danh sách rỗng (`[]`) tĩnh để không làm gián đoạn việc tải trang chính. |
+
+---
+
+## 6. Data Dictionary (Từ Điển Dữ Liệu Sơ Bộ)
+
+Cấu trúc lưu trữ và giao tiếp của các thực thể liên quan đến module gợi ý:
+
+### 6.1. Thực thể: User (Người dùng)
+
+| Tên trường (Field) | Kiểu dữ liệu (Type) | Ý nghĩa (Description)                            |
+| :----------------- | :------------------ | :----------------------------------------------- |
+| `userId`           | Long (PK)           | Mã định danh duy nhất của người dùng.            |
+| `email`            | String              | Email người dùng (dùng để xác thực).             |
+| `status`           | Enum                | Trạng thái tài khoản (ACTIVE, INACTIVE, LOCKED). |
+
+### 6.2. Thực thể: Category (Danh mục)
+
+| Tên trường (Field) | Kiểu dữ liệu (Type) | Ý nghĩa (Description)               |
+| :----------------- | :------------------ | :---------------------------------- |
+| `categoryId`       | Long (PK)           | Mã định danh duy nhất của danh mục. |
+| `categoryName`     | String              | Tên danh mục (vd: Áo thun nam).     |
+
+### 6.3. Thực thể: Product (Sản phẩm)
+
+| Tên trường (Field) | Kiểu dữ liệu (Type) | Ý nghĩa (Description)                           |
+| :----------------- | :------------------ | :---------------------------------------------- |
+| `productId`        | Long (PK)           | Mã định danh duy nhất của sản phẩm.             |
+| `categoryId`       | Long (FK)           | Mã danh mục sản phẩm trực thuộc.                |
+| `productName`      | String              | Tên hiển thị của sản phẩm.                      |
+| `price`            | BigDecimal          | Giá bán của sản phẩm.                           |
+| `stock`            | Integer             | Số lượng tồn kho hiện tại (Dùng cho BR-REC-02). |
+| `status`           | Enum                | Trạng thái bán (ACTIVE, HIDDEN, OUT_OF_STOCK).  |
+
+### 6.4. Thực thể: Purchase History (Lịch sử Mua hàng)
+
+| Tên trường (Field) | Kiểu dữ liệu (Type) | Ý nghĩa (Description)                           |
+| :----------------- | :------------------ | :---------------------------------------------- |
+| `historyId`        | Long (PK)           | Mã định danh bản ghi lịch sử.                   |
+| `userId`           | Long (FK)           | Định danh người mua.                            |
+| `productId`        | Long (FK)           | Định danh sản phẩm đã mua (Dùng cho BR-REC-06). |
+| `purchaseDate`     | Timestamp           | Thời điểm hoàn tất đơn hàng.                    |
+
+### 6.5. Thực thể: Recommendation (Dữ liệu trả về API)
+
+_(Đây là Data Transfer Object - DTO hiển thị kết quả ra Client)_
+| Tên trường (Field) | Kiểu dữ liệu (Type) | Ý nghĩa (Description) |
+| :--- | :--- | :--- |
+| `productId` | Long | ID sản phẩm được đề xuất. |
+| `productName` | String | Tên sản phẩm. |
+| `price` | BigDecimal | Giá sản phẩm. |
+| `thumbnail` | String | Đường dẫn hình ảnh thu nhỏ. |
+| `matchScore` | Float | Điểm số phù hợp từ AI (Ví dụ: 0.95 = 95%). (Dùng cho BR-REC-03) |
+```
