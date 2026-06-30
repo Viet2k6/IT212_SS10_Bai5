@@ -55,8 +55,6 @@ Tài liệu cần trình bày dưới định dạng Markdown chuyên nghiệp v
 
 **3. Minh chứng chạy thực tế (Text log trả về từ AI)**
 
-_(Đây là kết quả thực tế thu được khi đưa Mega-Prompt trên vào hệ thống AI để sinh tài liệu):_
-
 ````markdown
 # Tài Liệu Đặc Tả (SRS) - Module Gợi Ý Sản Phẩm Thông Minh (AI Recommendation)
 
